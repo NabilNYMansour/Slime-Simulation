@@ -9,5 +9,5 @@ void main() {
 
     vec4 col = imageLoad(texture_buffer, index);
 
-    imageStore(texture_buffer, index, vec4(max(col.xyz-vec3(0.01), vec3(0)), col.w));
+    imageStore(texture_buffer, index, vec4(max(col.xyz-vec3(0.01)*(1.-col.w), vec3(0)), col.w));
 }

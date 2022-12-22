@@ -15,7 +15,7 @@ class App(mglw.WindowConfig):
     resource_dir = 'programs'
     vsync = True
 
-    num_slimes = 200000
+    num_slimes = 500000
     speed = 1
     sense_agnle = math.pi/4
     sense_dis = 3
@@ -24,6 +24,9 @@ class App(mglw.WindowConfig):
     solid_color = 0.75,0.45,0.45
     padding_color = (0.04,0.08,0.16)
     background_color = (0,0,0)
+
+    run_sim = True
+    show_trail = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -42,6 +45,7 @@ class App(mglw.WindowConfig):
         self.compute['boundary'] = self.window_size
         self.compute['iSsolidColor'] = self.is_slimes_solid_color
         self.compute['solidColor'] = self.solid_color
+        self.compute['showTrail'] = self.show_trail
 
         self.prog['padding'] = self.padding
         self.prog['boundary'] = self.window_size
@@ -91,16 +95,17 @@ class App(mglw.WindowConfig):
 
         self.slimes.bind_to_storage_buffer(1)
         self.texture.bind_to_image(0, read=True, write=True)
+        if self.run_sim:
+            w, h = self.slimes.size, 1
+            gw, gh = 1024, 1
+            nx, ny, nz = math.ceil(w/gw), math.ceil(h/gh), 1
+            self.compute.run(nx, ny, nz)
 
-        w, h = self.slimes.size, 1
-        gw, gh = 1024, 1
-        nx, ny, nz = math.ceil(w/gw), math.ceil(h/gh), 1
-        self.compute.run(nx, ny, nz)
-
-        w, h = self.texture.size
-        gw, gh = 16, 16
-        nx, ny, nz = math.ceil(w/gw), math.ceil(h/gh), 1
-        self.diffuse_compute.run(nx, ny, nz)
+        if self.show_trail:
+            w, h = self.texture.size
+            gw, gh = 16, 16
+            nx, ny, nz = math.ceil(w/gw), math.ceil(h/gh), 1
+            self.diffuse_compute.run(nx, ny, nz)
 
         self.texture.use(location=0)
         self.quad.render(self.prog)
@@ -111,9 +116,16 @@ class App(mglw.WindowConfig):
         imgui.begin("Settings", False, imgui.WINDOW_NO_MOVE) # 1 begin
 
 
-        # Reset
+        # Reset, Pause, Trail
         if imgui.button("Reset Simulation"):
             self.reset()
+        imgui.same_line()
+        if imgui.button("Pause Simulation" if self.run_sim else "Resume Simulation"):
+            self.run_sim = not self.run_sim
+        imgui.same_line()
+        if imgui.button("Hide Trail" if self.show_trail else "Show Trail"):
+            self.show_trail = not self.show_trail
+            self.compute['showTrail'] = self.show_trail
 
         # Variables
         imgui.begin_child("region", -50, 0, border=True)

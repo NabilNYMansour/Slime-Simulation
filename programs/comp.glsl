@@ -25,6 +25,7 @@ uniform float senseAngle;
 
 uniform bool iSsolidColor;
 uniform vec3 solidColor;
+uniform bool showTrail;
 
 /*
    +----------+---------+----------+
@@ -94,8 +95,12 @@ void main() {
     Slime s = slimes[index];
 
     // remove previous place
-    vec3 prev = imageLoad(texture_buffer, ivec2(s.x,s.y)).rgb;
-    imageStore(texture_buffer, ivec2(s.x,s.y), vec4(prev,0));
+    if (showTrail){
+        vec3 prev = imageLoad(texture_buffer, ivec2(s.x,s.y)).rgb;
+        imageStore(texture_buffer, ivec2(s.x,s.y), vec4(prev,0));
+    } else {
+        imageStore(texture_buffer, ivec2(s.x,s.y), vec4(0));
+    }
 
     // new slime
     Slime ns;
@@ -141,7 +146,6 @@ void main() {
     if (iSsolidColor) {
         imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(solidColor,1));
     } else {
-        float varRatio = speed/senseDis;
         imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(normalize(sensedSlimes),1));
     }
 }
