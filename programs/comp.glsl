@@ -16,12 +16,15 @@ layout(std430, binding=1) buffer slimes_in {
     Slime slimes[];
 };
 
-uniform float speed;
 uniform vec2 boundary;
 uniform vec2 padding;
+
+uniform float speed;
 uniform float senseDis;
 uniform float senseAngle;
 
+uniform bool iSsolidColor;
+uniform vec3 solidColor;
 
 /*
    +----------+---------+----------+
@@ -118,11 +121,11 @@ void main() {
     ns.dy = d.y;
 
     // reflections
-    if (ns.x > boundary.x - padding.x || ns.x < 0 + padding.x) {
+    if (ns.x > boundary.x - padding.x || ns.x < padding.x) {
         ns.dx = -ns.dx;
     }
 
-    if (ns.y > boundary.y - padding.y || ns.y < 0 + padding.y) {
+    if (ns.y > boundary.y - padding.y || ns.y < padding.y) {
         ns.dy = -ns.dy;
     }
 
@@ -146,10 +149,12 @@ void main() {
     slimes[index] = ns;
 
     // draw slimes
-    // imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(normalize(sensedSlimes).gbb,1));
-    // imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(normalize(sensedSlimes*sensedSlimes.rgb),1));
-    // imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(rgb2hsv(normalize(sensedSlimes*sensedSlimes.rgb)),1));
-    // imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(rgb2hsv(normalize(sensedSlimes*sensedSlimes.rgb)),1));
-    // imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(rgb2hsv(normalize(sensedSlimes).gbb),1));
-    imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(1));
+    if (iSsolidColor) {
+        imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(solidColor,1));
+    } else {
+        float varRatio = speed/senseDis;
+        imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(sensedSlimes.r*varRatio,
+                                                          sensedSlimes.g/senseAngle,
+                                                          sensedSlimes.b/varRatio,1));
+    }
 }
