@@ -88,25 +88,14 @@ vec3 senseSlimes(vec2 pos, vec2 dt, vec2 dL, vec2 dR) {
     return vec3(left.w, forward.w, right.w);
 }
 
-// https://gist.github.com/sugi-cho/6a01cae436acddd72bdf
-vec3 rgb2hsv(vec3 c)
-{
-    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
-    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
-
-    float d = q.x - min(q.w, q.y);
-    float e = 1.0e-10;
-    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
-}
-
 void main() {
     int index = int(gl_GlobalInvocationID.x);
     // curr slime
     Slime s = slimes[index];
 
     // remove previous place
-    imageStore(texture_buffer, ivec2(s.x,s.y), vec4(0));
+    vec3 prev = imageLoad(texture_buffer, ivec2(s.x,s.y)).rgb;
+    imageStore(texture_buffer, ivec2(s.x,s.y), vec4(prev,0));
 
     // new slime
     Slime ns;
@@ -153,8 +142,6 @@ void main() {
         imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(solidColor,1));
     } else {
         float varRatio = speed/senseDis;
-        imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(sensedSlimes.r*varRatio,
-                                                          sensedSlimes.g/senseAngle,
-                                                          sensedSlimes.b/varRatio,1));
+        imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(normalize(sensedSlimes),1));
     }
 }

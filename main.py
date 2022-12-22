@@ -32,6 +32,7 @@ class App(mglw.WindowConfig):
         self.prog = self.load_program(vertex_shader='vert.glsl',
                                       fragment_shader='frag.glsl')
         self.compute = self.load_compute_shader(path='comp.glsl')
+        self.diffuse_compute = self.load_compute_shader(path='diff.glsl')
 
         self.compute['speed'] = self.speed
         self.compute['senseDis'] = self.sense_dis
@@ -51,6 +52,7 @@ class App(mglw.WindowConfig):
         data = self.init_data()
         self.slimes = self.ctx.buffer(data=data.tobytes())
         self.texture = self.ctx.texture(size=self.window_size,components=4,dtype='f4')
+
         self.quad = mglw.geometry.quad_fs()
 
         # GUI init
@@ -85,17 +87,20 @@ class App(mglw.WindowConfig):
         self.texture = self.ctx.texture(size=self.window_size,components=4,dtype='f4')
 
     def render(self, time, frame_time):
-        # print(np.frombuffer(self.slimes.read(), dtype='f4')[-4:])
-        # sleep(0.5)
         self.ctx.clear()
+
+        self.slimes.bind_to_storage_buffer(1)
+        self.texture.bind_to_image(0, read=True, write=True)
 
         w, h = self.slimes.size, 1
         gw, gh = 1024, 1
         nx, ny, nz = math.ceil(w/gw), math.ceil(h/gh), 1
-
-        self.slimes.bind_to_storage_buffer(1)
-        self.texture.bind_to_image(0, read=False, write=True)
         self.compute.run(nx, ny, nz)
+
+        w, h = self.texture.size
+        gw, gh = 16, 16
+        nx, ny, nz = math.ceil(w/gw), math.ceil(h/gh), 1
+        self.diffuse_compute.run(nx, ny, nz)
 
         self.texture.use(location=0)
         self.quad.render(self.prog)
