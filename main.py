@@ -60,7 +60,8 @@ class App(mglw.WindowConfig):
         # Buffers init
         data = self.init_data()
         self.slimes = self.ctx.buffer(data=data.tobytes())
-        self.texture = self.ctx.texture(size=self.window_size,components=4,dtype='f4')
+        self.texture = self.ctx.texture(size=self.window_size,components=4,
+            data=np.zeros((self.width,self.height,2)).tobytes(),dtype='f4')
 
         self.quad = mglw.geometry.quad_fs()
 
@@ -93,7 +94,8 @@ class App(mglw.WindowConfig):
         data = self.init_data()
 
         self.slimes = self.ctx.buffer(data=data.tobytes())
-        self.texture = self.ctx.texture(size=self.window_size,components=4,dtype='f4')
+        self.texture = self.ctx.texture(size=self.window_size,components=4,
+            data=np.zeros((self.width,self.height,2)).tobytes(),dtype='f4')
 
     def render(self, time, frame_time):
         # print(np.frombuffer(self.slimes.read(),'f4'))
@@ -269,5 +271,3 @@ class App(mglw.WindowConfig):
 
 if __name__ == '__main__':
     mglw.run_window_config(App)
-
-
