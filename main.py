@@ -21,12 +21,13 @@ class App(mglw.WindowConfig):
     sense_dis = 3
 
     is_slimes_solid_color = False
-    solid_color = 0.75,0.45,0.45
+    solid_color = 0.45,0.45,0.75
     padding_color = (0.04,0.08,0.16)
-    background_color = (0,0,0)
+    background_color = (0.1,0.1,0.2)
 
     run_sim = True
     show_trail = True
+    apply_blur = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -46,11 +47,13 @@ class App(mglw.WindowConfig):
         self.compute['iSsolidColor'] = self.is_slimes_solid_color
         self.compute['solidColor'] = self.solid_color
         self.compute['showTrail'] = self.show_trail
+        self.compute['backgroundColor'] = self.background_color
 
         self.prog['padding'] = self.padding
         self.prog['boundary'] = self.window_size
         self.prog['paddingColor'] = self.padding_color
         self.prog['backgroundColor'] = self.background_color
+        self.prog['applyBlur'] = self.apply_blur
 
         # Buffers init
         data = self.init_data()
@@ -91,6 +94,7 @@ class App(mglw.WindowConfig):
         self.texture = self.ctx.texture(size=self.window_size,components=4,dtype='f4')
 
     def render(self, time, frame_time):
+        # print(np.frombuffer(self.slimes.read(),'f4'))
         self.ctx.clear()
 
         self.slimes.bind_to_storage_buffer(1)
@@ -101,11 +105,11 @@ class App(mglw.WindowConfig):
             nx, ny, nz = math.ceil(w/gw), math.ceil(h/gh), 1
             self.compute.run(nx, ny, nz)
 
-        if self.show_trail:
-            w, h = self.texture.size
-            gw, gh = 16, 16
-            nx, ny, nz = math.ceil(w/gw), math.ceil(h/gh), 1
-            self.diffuse_compute.run(nx, ny, nz)
+            if self.show_trail:
+                w, h = self.texture.size
+                gw, gh = 16, 16
+                nx, ny, nz = math.ceil(w/gw), math.ceil(h/gh), 1
+                self.diffuse_compute.run(nx, ny, nz)
 
         self.texture.use(location=0)
         self.quad.render(self.prog)
@@ -113,9 +117,22 @@ class App(mglw.WindowConfig):
 
     def render_ui(self):
         imgui.new_frame()
-        imgui.begin("Settings", False, imgui.WINDOW_NO_MOVE) # 1 begin
-
-
+        imgui.set_next_window_position(10,10)
+        imgui.set_next_window_size(570, 700)
+        imgui.set_next_window_collapsed(True)
+        imgui.begin("Settings", False, imgui.WINDOW_NO_MOVE+
+                                       imgui.WINDOW_NO_RESIZE+
+                                       imgui.WINDOW_NO_SAVED_SETTINGS) # 1 begin
+        # Number of slimes
+        imgui.push_item_width(imgui.get_window_width()*0.4)
+        imgui.text("Number of slimes")
+        imgui.same_line()
+        changedN, new_number = imgui.input_int("", value=self.num_slimes)
+        if changedN:
+            self.num_slimes = new_number
+        imgui.same_line()
+        if imgui.button("Apply"):
+            self.reset()
         # Reset, Pause, Trail
         if imgui.button("Reset Simulation"):
             self.reset()
@@ -170,6 +187,12 @@ class App(mglw.WindowConfig):
         # Coloring
         imgui.begin_child("region", -50, 0, border=True)
         imgui.text("Color Mode:")
+        if imgui.checkbox("Apply Blur", self.apply_blur)[0]:
+            self.apply_blur = not self.apply_blur
+            self.prog['applyBlur'] = self.apply_blur
+        if imgui.radio_button("Render Slimes with sense color", not self.is_slimes_solid_color):
+            self.is_slimes_solid_color = not self.is_slimes_solid_color
+            self.compute['iSsolidColor'] = self.is_slimes_solid_color
         if imgui.radio_button("Render Slimes with solid color", self.is_slimes_solid_color):
             self.is_slimes_solid_color = not self.is_slimes_solid_color
             self.compute['iSsolidColor'] = self.is_slimes_solid_color
@@ -186,10 +209,18 @@ class App(mglw.WindowConfig):
         if changedBC:
             self.background_color = new_background_color
             self.prog['backgroundColor'] = self.background_color
+            self.compute['backgroundColor'] = self.background_color
         imgui.end_child()
-
-
         imgui.end() # 1 end
+
+        imgui.begin("Help", False) # 2 begin
+        imgui.text_unformatted(
+''' - This is a slime simulation.
+ - To modify the values
+'''
+        )
+        imgui.end() # 2 end
+
         imgui.render()
         self.imgui.render(imgui.get_draw_data())
 

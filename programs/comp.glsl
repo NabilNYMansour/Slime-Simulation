@@ -18,6 +18,7 @@ layout(std430, binding=1) buffer slimes_in {
 
 uniform vec2 boundary;
 uniform vec2 padding;
+uniform vec3 backgroundColor;
 
 uniform float speed;
 uniform float senseDis;
@@ -89,6 +90,17 @@ vec3 senseSlimes(vec2 pos, vec2 dt, vec2 dL, vec2 dR) {
     return vec3(left.w, forward.w, right.w);
 }
 
+//// Comparison functions
+float gt(float v1, float v2)
+{
+    return step(v2,v1);
+}
+
+float lt(float v1, float v2)
+{
+    return step(v1, v2);
+}
+
 void main() {
     int index = int(gl_GlobalInvocationID.x);
     // curr slime
@@ -107,8 +119,8 @@ void main() {
 
     // calc new slime position
     vec2 d = normalize(vec2(s.dx,s.dy));
-    ns.x = s.x+speed*d.x;
-    ns.y = s.y+speed*d.y;
+    ns.x = clamp(s.x+speed*d.x, padding.x - 0.5*speed*d.x - speed, boundary.x - padding.x + 0.5*speed*d.x + speed);
+    ns.y = clamp(s.y+speed*d.y, padding.y - 0.5*speed*d.y - speed, boundary.y - padding.y + 0.5*speed*d.y + speed);
 
     // calc new slime angle
     ns.dx = d.x;
@@ -130,9 +142,9 @@ void main() {
     vec3 sensedSlimes = senseSlimes(vec2(ns.x,ns.y), dFor, dLeft, dRight);
 
     vec2 dt = (dLeft*sensedSlimes.x+
-              dFor  *sensedSlimes.y+
-              dRight*sensedSlimes.z+ 
-              dFor);
+               dFor  *sensedSlimes.y+
+               dRight*sensedSlimes.z+
+               dFor);
 
     dt = normalize(dt);
 
@@ -145,7 +157,9 @@ void main() {
     // draw slimes
     if (iSsolidColor) {
         imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(solidColor,1));
-    } else {
+    } else if (length(sensedSlimes) > 0){
         imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(normalize(sensedSlimes),1));
+    } else {
+        imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(backgroundColor,1));
     }
 }
