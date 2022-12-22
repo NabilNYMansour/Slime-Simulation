@@ -29,6 +29,8 @@ class App(mglw.WindowConfig):
     show_trail = True
     apply_blur = True
 
+    show_gui = True
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -113,13 +115,13 @@ class App(mglw.WindowConfig):
 
         self.texture.use(location=0)
         self.quad.render(self.prog)
-        self.render_ui()
+        if self.show_gui:
+            self.render_ui()
 
     def render_ui(self):
         imgui.new_frame()
         imgui.set_next_window_position(10,10)
-        imgui.set_next_window_size(570, 700)
-        imgui.set_next_window_collapsed(True)
+        imgui.set_next_window_size(600, 700)
         imgui.begin("Settings", False, imgui.WINDOW_NO_MOVE+
                                        imgui.WINDOW_NO_RESIZE+
                                        imgui.WINDOW_NO_SAVED_SETTINGS) # 1 begin
@@ -213,10 +215,20 @@ class App(mglw.WindowConfig):
         imgui.end_child()
         imgui.end() # 1 end
 
-        imgui.begin("Help", False) # 2 begin
+        imgui.set_next_window_position(610,10)
+        imgui.set_next_window_size(600, 300)
+        imgui.begin("Help", False, imgui.WINDOW_NO_MOVE+
+                                   imgui.WINDOW_NO_RESIZE+
+                                   imgui.WINDOW_NO_SAVED_SETTINGS) # 2 begin
         imgui.text_unformatted(
 ''' - This is a slime simulation.
- - To modify the values
+ - Open 'Settings' tab to modify the values of the sim.
+ - To hide or show the GUI, hit 'S'.
+ - To pause or unpause the simulation, hit 'P'.
+ - To reset the simulation, hit 'R'.
+ - Press ESC to exit.
+
+ Made by Nabil NY Mansour
 '''
         )
         imgui.end() # 2 end
@@ -243,6 +255,13 @@ class App(mglw.WindowConfig):
         self.imgui.mouse_release_event(x, y, button)
 
     def key_event(self, key, action, modifiers):
+        if action == self.wnd.keys.ACTION_PRESS:
+            if key == self.wnd.keys.P: # pause/unpause
+                self.run_sim = not self.run_sim
+            elif key == self.wnd.keys.S: # hide/show gui
+                self.show_gui = not self.show_gui
+            elif key == self.wnd.keys.R:
+                self.reset()
         self.imgui.key_event(key, action, modifiers)
 
     def unicode_char_entered(self, char):
