@@ -18,7 +18,7 @@ class App(mglw.WindowConfig):
     num_slimes = 500000
     speed = 1
     sense_agnle = math.pi/4
-    sense_dis = 3
+    sense_dis = 5
 
     is_slimes_solid_color = False
     solid_color = 0.45,0.45,0.75
