@@ -11,9 +11,9 @@ The simulation is implemented in various shaders where the main logic of the sli
 
 The following are some images of the various types of slimes that can be made with this application:
 <p float="left">
-  <img src="https://github.com/NabilNYMansour/Slime-Simulation/blob/main/demo/ss1.png" alt="electro_slime" width="500"/>
-  <img src="https://github.com/NabilNYMansour/Slime-Simulation/blob/main/demo/ss2.png" alt="cell_slime" width="500"/>
-  <img src="https://github.com/NabilNYMansour/Slime-Simulation/blob/main/demo/ss3.png" alt="planet_slime" width="500"/>
-  <img src="https://github.com/NabilNYMansour/Slime-Simulation/blob/main/demo/ss4.png" alt="chaos_slime" width="500"/>
+  <img src="https://github.com/NabilNYMansour/Slime-Simulation/blob/main/demo/ss1.png" alt="electro_slime" width="300"/>
+  <img src="https://github.com/NabilNYMansour/Slime-Simulation/blob/main/demo/ss2.png" alt="cell_slime" width="300"/>
+  <img src="https://github.com/NabilNYMansour/Slime-Simulation/blob/main/demo/ss3.png" alt="planet_slime" width="300"/>
+  <img src="https://github.com/NabilNYMansour/Slime-Simulation/blob/main/demo/ss4.png" alt="chaos_slime" width="300"/>
 </p>
 The purpose of this project is to learn how to utilize compute shaders in an effective manner, and be able to use them in a rendering pipeline.
