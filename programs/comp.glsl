@@ -4,12 +4,12 @@
 
 layout (local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
-// refer to this https://www.khronos.org/opengl/wiki/Layout_Qualifier_(GLSL)
 
 struct Slime {
     float x, y, dx, dy;
 };
 
+// refer to this https://www.khronos.org/opengl/wiki/Layout_Qualifier_(GLSL)
 layout(rgba32f, location=0) uniform image2D texture_buffer;
 
 layout(std430, binding=1) buffer slimes_in {
@@ -57,50 +57,35 @@ vec2 vecOffset(vec2 v, float angOffset) {
 }
 
 vec3 senseSlimes(vec2 pos, vec2 dt, vec2 dL, vec2 dR) {
-    vec4 forward = imageLoad(texture_buffer, ivec2(pos.x+senseDis*dt.x,pos.y+senseDis*dt.y));
-    forward += imageLoad(texture_buffer, ivec2(pos.x + 1 +senseDis*dt.x,pos.y     +senseDis*dt.y));
-    forward += imageLoad(texture_buffer, ivec2(pos.x - 1 +senseDis*dt.x,pos.y     +senseDis*dt.y));
-    forward += imageLoad(texture_buffer, ivec2(pos.x     +senseDis*dt.x,pos.y + 1 +senseDis*dt.y));
-    forward += imageLoad(texture_buffer, ivec2(pos.x     +senseDis*dt.x,pos.y - 1 +senseDis*dt.y));
-    forward += imageLoad(texture_buffer, ivec2(pos.x + 1 +senseDis*dt.x,pos.y + 1 +senseDis*dt.y));
-    forward += imageLoad(texture_buffer, ivec2(pos.x + 1 +senseDis*dt.x,pos.y - 1 +senseDis*dt.y));
-    forward += imageLoad(texture_buffer, ivec2(pos.x - 1 +senseDis*dt.x,pos.y + 1 +senseDis*dt.y));
-    forward += imageLoad(texture_buffer, ivec2(pos.x - 1 +senseDis*dt.x,pos.y - 1 +senseDis*dt.y));
+    vec4 forward = vec4(0);
+    vec4 left = vec4(0);
+    vec4 right = vec4(0);
 
-    vec4 left = imageLoad(texture_buffer, ivec2(pos.x+senseDis*dL.x,pos.y+senseDis*dL.y));
-    left += imageLoad(texture_buffer, ivec2(pos.x + 1 +senseDis*dL.x,pos.y    +senseDis*dL.y));
-    left += imageLoad(texture_buffer, ivec2(pos.x - 1 +senseDis*dL.x,pos.y    +senseDis*dL.y));
-    left += imageLoad(texture_buffer, ivec2(pos.x     +senseDis*dL.x,pos.y + 1 +senseDis*dL.y));
-    left += imageLoad(texture_buffer, ivec2(pos.x     +senseDis*dL.x,pos.y - 1 +senseDis*dL.y));
-    left += imageLoad(texture_buffer, ivec2(pos.x + 1 +senseDis*dL.x,pos.y + 1 +senseDis*dL.y));
-    left += imageLoad(texture_buffer, ivec2(pos.x + 1 +senseDis*dL.x,pos.y - 1 +senseDis*dL.y));
-    left += imageLoad(texture_buffer, ivec2(pos.x - 1 +senseDis*dL.x,pos.y + 1 +senseDis*dL.y));
-    left += imageLoad(texture_buffer, ivec2(pos.x - 1 +senseDis*dL.x,pos.y - 1 +senseDis*dL.y));
-
-    vec4 right = imageLoad(texture_buffer, ivec2(pos.x+senseDis*dR.x,pos.y+senseDis*dR.y));
-    right += imageLoad(texture_buffer, ivec2(pos.x + 1 +senseDis*dR.x,pos.y     +senseDis*dR.y));
-    right += imageLoad(texture_buffer, ivec2(pos.x - 1 +senseDis*dR.x,pos.y     +senseDis*dR.y));
-    right += imageLoad(texture_buffer, ivec2(pos.x     +senseDis*dR.x,pos.y + 1 +senseDis*dR.y));
-    right += imageLoad(texture_buffer, ivec2(pos.x     +senseDis*dR.x,pos.y - 1 +senseDis*dR.y));
-    right += imageLoad(texture_buffer, ivec2(pos.x + 1 +senseDis*dR.x,pos.y + 1 +senseDis*dR.y));
-    right += imageLoad(texture_buffer, ivec2(pos.x + 1 +senseDis*dR.x,pos.y - 1 +senseDis*dR.y));
-    right += imageLoad(texture_buffer, ivec2(pos.x - 1 +senseDis*dR.x,pos.y + 1 +senseDis*dR.y));
-    right += imageLoad(texture_buffer, ivec2(pos.x - 1 +senseDis*dR.x,pos.y - 1 +senseDis*dR.y));
+    int senseRadius = 1;
+    for (int i = -senseRadius; i <= senseRadius; ++i) {
+        for (int j = -senseRadius; j <= senseRadius; ++j) {
+            forward += imageLoad(texture_buffer, ivec2(pos.x+i+senseDis*dt.x, pos.y+j+senseDis*dt.y));
+            left    += imageLoad(texture_buffer, ivec2(pos.x+i+senseDis*dL.x, pos.y+j+senseDis*dL.y));
+            right   += imageLoad(texture_buffer, ivec2(pos.x+i+senseDis*dR.x, pos.y+j+senseDis*dR.y));
+        }
+    }
 
     return vec3(left.w, forward.w, right.w);
 }
 
 void main() {
     int index = int(gl_GlobalInvocationID.x);
+
     // curr slime
     Slime s = slimes[index];
+    ivec2 s_pos = ivec2(s.x,s.y);
 
     // remove previous place
     if (showTrail){
-        vec3 prev = imageLoad(texture_buffer, ivec2(s.x,s.y)).rgb;
-        imageStore(texture_buffer, ivec2(s.x,s.y), vec4(prev,0));
+        vec3 prev = imageLoad(texture_buffer, s_pos).rgb;
+        imageStore(texture_buffer, s_pos, vec4(prev,0));
     } else {
-        imageStore(texture_buffer, ivec2(s.x,s.y), vec4(0));
+        imageStore(texture_buffer, s_pos, vec4(0));
     }
 
     // new slime
@@ -108,8 +93,9 @@ void main() {
 
     // calc new slime position
     vec2 d = normalize(vec2(s.dx,s.dy));
-    ns.x = clamp(s.x+speed*d.x, padding.x - 0.5*speed*d.x - speed, boundary.x - padding.x + 0.5*speed*d.x + speed);
-    ns.y = clamp(s.y+speed*d.y, padding.y - 0.5*speed*d.y - speed, boundary.y - padding.y + 0.5*speed*d.y + speed);
+    vec2 next_step = vec2(speed*d.x, speed*d.y);
+    ns.x = clamp(s.x+next_step.x, padding.x - 0.5*next_step.x - speed, boundary.x - padding.x + 0.5*next_step.x + speed);
+    ns.y = clamp(s.y+next_step.y, padding.y - 0.5*next_step.y - speed, boundary.y - padding.y + 0.5*next_step.y + speed);
 
     // calc new slime angle
     ns.dx = d.x;
@@ -130,7 +116,7 @@ void main() {
     vec2 dRight = vecOffset(dFor,senseAngle);
     vec3 sensedSlimes = senseSlimes(vec2(ns.x,ns.y), dFor, dLeft, dRight);
 
-    vec2 dt = (dLeft*sensedSlimes.x+
+    vec2 dt = (dLeft *sensedSlimes.x+
                dFor  *sensedSlimes.y+
                dRight*sensedSlimes.z+
                dFor);

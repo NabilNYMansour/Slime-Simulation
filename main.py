@@ -60,7 +60,7 @@ class App(mglw.WindowConfig):
         data = self.init_data()
         self.slimes = self.ctx.buffer(data=data.tobytes())
         self.texture = self.ctx.texture(size=self.window_size,components=4,
-            data=np.zeros((self.width,self.height,2)).tobytes(),dtype='f4')
+            data=np.zeros((self.width,self.height,4)).astype('f4').tobytes(),dtype='f4')
 
         self.quad = mglw.geometry.quad_fs()
 
@@ -94,7 +94,7 @@ class App(mglw.WindowConfig):
 
         self.slimes = self.ctx.buffer(data=data.tobytes())
         self.texture = self.ctx.texture(size=self.window_size,components=4,
-            data=np.zeros((self.width,self.height,2)).tobytes(),dtype='f4')
+            data=np.zeros((self.width,self.height,4)).astype('f4').tobytes(),dtype='f4')
 
     def render(self, time, frame_time):
         self.ctx.clear()
@@ -121,7 +121,7 @@ class App(mglw.WindowConfig):
     def render_ui(self):
         imgui.new_frame()
         imgui.set_next_window_position(10,10)
-        imgui.set_next_window_size(450, 600)
+        imgui.set_next_window_size(500, 600)
         imgui.begin("Settings", False, imgui.WINDOW_NO_MOVE+
                                        imgui.WINDOW_NO_RESIZE+
                                        imgui.WINDOW_NO_SAVED_SETTINGS) # 1 begin
@@ -219,8 +219,8 @@ class App(mglw.WindowConfig):
         imgui.end_child()
         imgui.end() # 1 end
 
-        imgui.set_next_window_position(470,10)
-        imgui.set_next_window_size(500, 250)
+        imgui.set_next_window_position(520,10)
+        imgui.set_next_window_size(550, 250)
         imgui.begin("Help", False, imgui.WINDOW_NO_MOVE+
                                    imgui.WINDOW_NO_RESIZE+
                                    imgui.WINDOW_NO_SAVED_SETTINGS) # 2 begin

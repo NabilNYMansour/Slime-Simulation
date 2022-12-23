@@ -10,6 +10,7 @@ uniform vec3 paddingColor;
 uniform vec3 backgroundColor;
 uniform bool applyBlur;
 
+// Comparison functions
 float gt(float v1, float v2)
 {
     return step(v2,v1);
@@ -37,13 +38,13 @@ void main() {
     }
 
     // boundary
-    float bound = 1.;
-    bound *= gt(uv.x, padding.x/boundary.x);
-    bound *= lt(uv.x, (boundary.x-padding.x)/boundary.x);
-    bound *= gt(uv.y, padding.y/boundary.y);
-    bound *= lt(uv.y, (boundary.y-padding.y)/boundary.y);
-    bound = 1.-bound;
+    float out_bound = 1.;
+    out_bound *= gt(uv.x, padding.x/boundary.x);
+    out_bound *= lt(uv.x, (boundary.x-padding.x)/boundary.x);
+    out_bound *= gt(uv.y, padding.y/boundary.y);
+    out_bound *= lt(uv.y, (boundary.y-padding.y)/boundary.y);
+    float in_bound = 1.-out_bound;
 
     // Final color
-    fragColor = text*(1.-bound) + vec4(paddingColor*bound,1) + vec4(backgroundColor,1)*(1.-text.w)*(1.-bound);
+    fragColor = text*out_bound + vec4(paddingColor*in_bound,1) + vec4(backgroundColor,1)*(1.-text.w)*out_bound;
 }
