@@ -3,7 +3,6 @@ import moderngl_window as mglw
 import imgui
 from moderngl_window.integrations.imgui import ModernglWindowRenderer
 import numpy as np
-from time import sleep
 
 class App(mglw.WindowConfig):
     title = "Slimes simulation"
@@ -11,11 +10,11 @@ class App(mglw.WindowConfig):
     width = 1600
     height = int(width*9/16)
     window_size = width, height
-    padding = 10,10
     resource_dir = 'programs'
     vsync = True
 
     num_slimes = 500000
+    padding = 10,10
     speed = 1
     sense_agnle = math.pi/4
     sense_dis = 5
@@ -68,7 +67,7 @@ class App(mglw.WindowConfig):
         # GUI init
         imgui.create_context()
         io = imgui.get_io()
-        io.fonts.add_font_from_file_ttf('font.ttf', 30)
+        io.fonts.add_font_from_file_ttf('font.ttf', 25)
         self.imgui = ModernglWindowRenderer(self.wnd)
         self.imgui.refresh_font_texture()
 
@@ -98,7 +97,6 @@ class App(mglw.WindowConfig):
             data=np.zeros((self.width,self.height,2)).tobytes(),dtype='f4')
 
     def render(self, time, frame_time):
-        # print(np.frombuffer(self.slimes.read(),'f4'))
         self.ctx.clear()
 
         self.slimes.bind_to_storage_buffer(1)
@@ -123,7 +121,7 @@ class App(mglw.WindowConfig):
     def render_ui(self):
         imgui.new_frame()
         imgui.set_next_window_position(10,10)
-        imgui.set_next_window_size(600, 700)
+        imgui.set_next_window_size(450, 600)
         imgui.begin("Settings", False, imgui.WINDOW_NO_MOVE+
                                        imgui.WINDOW_NO_RESIZE+
                                        imgui.WINDOW_NO_SAVED_SETTINGS) # 1 begin
@@ -190,10 +188,14 @@ class App(mglw.WindowConfig):
 
         # Coloring
         imgui.begin_child("region", -50, 0, border=True)
-        imgui.text("Color Mode:")
+        imgui.text("Rendering:")
         if imgui.checkbox("Apply Blur", self.apply_blur)[0]:
             self.apply_blur = not self.apply_blur
             self.prog['applyBlur'] = self.apply_blur
+        imgui.same_line()
+        if imgui.checkbox("VSync On", self.vsync)[0]:
+            self.vsync = not self.vsync
+            self.wnd.vsync = self.vsync
         if imgui.radio_button("Render Slimes with sense color", not self.is_slimes_solid_color):
             self.is_slimes_solid_color = not self.is_slimes_solid_color
             self.compute['iSsolidColor'] = self.is_slimes_solid_color
@@ -217,14 +219,14 @@ class App(mglw.WindowConfig):
         imgui.end_child()
         imgui.end() # 1 end
 
-        imgui.set_next_window_position(610,10)
-        imgui.set_next_window_size(600, 300)
+        imgui.set_next_window_position(470,10)
+        imgui.set_next_window_size(500, 250)
         imgui.begin("Help", False, imgui.WINDOW_NO_MOVE+
                                    imgui.WINDOW_NO_RESIZE+
                                    imgui.WINDOW_NO_SAVED_SETTINGS) # 2 begin
         imgui.text_unformatted(
 ''' - This is a slime simulation.
- - Open 'Settings' tab to modify the values of the sim.
+ - Use 'Settings' tab to modify the values of the sim.
  - To hide or show the GUI, hit 'S'.
  - To pause or unpause the simulation, hit 'P'.
  - To reset the simulation, hit 'R'.

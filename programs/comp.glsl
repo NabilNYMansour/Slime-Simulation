@@ -90,17 +90,6 @@ vec3 senseSlimes(vec2 pos, vec2 dt, vec2 dL, vec2 dR) {
     return vec3(left.w, forward.w, right.w);
 }
 
-//// Comparison functions
-float gt(float v1, float v2)
-{
-    return step(v2,v1);
-}
-
-float lt(float v1, float v2)
-{
-    return step(v1, v2);
-}
-
 void main() {
     int index = int(gl_GlobalInvocationID.x);
     // curr slime
@@ -157,7 +146,7 @@ void main() {
     // draw slimes
     if (iSsolidColor) {
         imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(solidColor,1));
-    } else if (length(sensedSlimes) > 0){
+    } else if (length(sensedSlimes) > 0) {
         imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(normalize(sensedSlimes),1));
     } else {
         imageStore(texture_buffer, ivec2(ns.x,ns.y), vec4(backgroundColor,1));
